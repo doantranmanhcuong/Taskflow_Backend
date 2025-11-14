@@ -1,0 +1,3 @@
+PORT=3003
+JWT_SECRET=supersecretkey
+JWT_EXPIRE=3600
