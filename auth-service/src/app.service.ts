@@ -28,7 +28,7 @@ export class AppService {
   ) {}
 
   // ========================================================
-  // 🔥 Register User + Sync sang user-service
+  //  Register User + Sync sang user-service
   // ========================================================
   async register(dto: RegisterDto) {
     console.log('[AUTH] Register payload:', dto);
@@ -52,7 +52,7 @@ export class AppService {
     console.log('[AUTH] User created with id:', savedUser.id);
 
     // ============================================================
-    // 🔥 Sync sang user-service
+    //  Sync sang user-service
     // ============================================================
     try {
       const syncUrl = `${process.env.USER_SERVICE}/users/sync`;
@@ -76,7 +76,7 @@ export class AppService {
   }
 
   // ========================================================
-  // 🔥 Login User
+  //  Login User
   // ========================================================
   async login(dto: LoginDto) {
     console.log('[AUTH] Login request:', dto);
@@ -92,7 +92,7 @@ export class AppService {
     if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
     // =======================================================
-    // 🔥 Sinh JWT
+    //  Sinh JWT
     // =======================================================
     const payload = {
       sub: user.id,

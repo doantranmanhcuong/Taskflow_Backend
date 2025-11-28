@@ -1,0 +1,31 @@
+{
+  "name": "@registry/consul",
+  "version": "1.0.0",
+  "description": "Shared Consul registry module for microservices",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "consul",
+    "registry",
+    "microservices",
+    "nestjs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "consul": "^2.0.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/consul": "^0.40.3",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  }
+}
