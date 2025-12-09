@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';  // Thêm ConfigService
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConsulModule } from '../../registry/src/consul.module';
 import { HttpModule } from '@nestjs/axios';
@@ -43,11 +43,16 @@ import { HealthController } from './health.controller';
       healthCheckPath: '/api/health', 
     }),
 
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: Number(process.env.JWT_EXPIRE) || 3600,  
-      },
+    // JwtModule async để lấy env (tương thích cũ, tăng expire)
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get('JWT_EXPIRE') || '24h',  // Tăng 24h từ env
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [

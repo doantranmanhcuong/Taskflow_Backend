@@ -11,12 +11,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { AppService } from './app.service';
+import { AppService } from './app.service'; 
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';  
 
-@Controller('tasks')
+@Controller('tasks')  
 @UseGuards(JwtAuthGuard) 
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -30,10 +30,13 @@ export class AppController {
     return userId;
   }
 
-  @Get('list')
+  @Get()  
   async getTasks(@Req() req) {
+    console.log('[TASK-CONTROLLER] GET /api/tasks called'); 
     const userId = this.getUserId(req);
-    return this.appService.getTasks(userId);
+    const tasks = await this.appService.getTasks(userId);
+    console.log('[TASK-CONTROLLER] GET /api/tasks returned', tasks.length, 'tasks');  
+    return { data: tasks };  
   }
 
   @Post('create')

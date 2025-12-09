@@ -11,6 +11,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';  // Thêm ConfigService
 import * as bcrypt from 'bcrypt';
 
 import { User } from '../entities/user.entity';
@@ -25,11 +26,10 @@ export class AppService {
 
     private readonly http: HttpService,
     private readonly jwt: JwtService,
+    private readonly configService: ConfigService,  // Inject ConfigService
   ) {}
 
-  // ========================================================
-  //  Register User + Sync sang user-service
-  // ========================================================
+  // Register User + Sync sang user-service (giữ nguyên logic cũ)
   async register(dto: RegisterDto) {
     console.log('[AUTH] Register payload:', dto);
 
@@ -51,11 +51,9 @@ export class AppService {
 
     console.log('[AUTH] User created with id:', savedUser.id);
 
-    // ============================================================
-    //  Sync sang user-service
-    // ============================================================
+    // Sync sang user-service (giữ nguyên fire-and-forget)
     try {
-      const syncUrl = `${process.env.USER_SERVICE}/users/sync`;
+      const syncUrl = `${this.configService.get('USER_SERVICE') || process.env.USER_SERVICE}/users/sync`;  // Từ env
 
       console.log('[AUTH] SYNC URL:', syncUrl);
 
@@ -70,14 +68,13 @@ export class AppService {
       console.log('[AUTH] Sync user-service SUCCESS!');
     } catch (error) {
       console.error('[AUTH] Sync user-service FAILED:', error.message);
+      // Không rollback, giữ nguyên code cũ
     }
 
     return { message: 'Register successfully' };
   }
 
-  // ========================================================
-  //  Login User
-  // ========================================================
+  // Login User (tăng time token với ConfigService)
   async login(dto: LoginDto) {
     console.log('[AUTH] Login request:', dto);
 
@@ -91,18 +88,19 @@ export class AppService {
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
-    // =======================================================
-    //  Sinh JWT
-    // =======================================================
+    // Sinh JWT với time tăng (24h từ env)
     const payload = {
       sub: user.id,
       email: user.email,
       name: user.name,
     };
 
-    const expiresIn = Number(process.env.JWT_EXPIRE) || 3600;
+    const expiresIn = this.configService.get('JWT_EXPIRE') || '24h';  // Tăng 24h từ env
 
-    const token = this.jwt.sign(payload, { expiresIn });
+    const token = this.jwt.sign(payload, { 
+      secret: this.configService.get('JWT_SECRET') || process.env.JWT_SECRET,
+      expiresIn 
+    });
 
     console.log('[AUTH] Login SUCCESS for userId:', user.id);
     console.log('[AUTH] JWT expires in:', expiresIn, 'seconds');

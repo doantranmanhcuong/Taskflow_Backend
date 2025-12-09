@@ -8,15 +8,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['http://localhost:3000'], 
+    origin: ['http://localhost:4200'], 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Book Management API Gateway')
-    .setDescription('API Gateway for Book Management Microservices')
+    .setTitle('To-Do List API Gateway')
+    .setDescription('API Gateway for To-Do List Management System')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('auth', 'Authentication endpoints')
