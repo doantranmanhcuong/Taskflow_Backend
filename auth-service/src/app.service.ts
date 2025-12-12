@@ -141,8 +141,8 @@ export class AppService {
 
   async changePassword(
   userId: number,
-  newPassword: string,    // Required parameter trước
-  currentPassword?: string // Optional parameter sau
+  newPassword: string,    
+  currentPassword?: string 
 ): Promise<void> {
   this.logger.log(`[AUTH] Changing password for user ${userId}`);
   

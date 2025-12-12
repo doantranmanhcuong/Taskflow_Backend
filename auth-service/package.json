@@ -9,7 +9,6 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/auth-service/src/main.js",
-
     "start:dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --watch src src/main.ts",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/auth-service/src/main.js",

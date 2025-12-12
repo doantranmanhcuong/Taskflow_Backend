@@ -70,7 +70,6 @@ export class ProxyService {
 
       this.logger.log(`Forwarding ${method} ${originalPath} to: ${url} (query: ${JSON.stringify(queryParams || {})})`);
 
-      // THAY TOÀN BỘ ĐOẠN cleanHeaders BẰNG ĐOẠN NÀY:
 const cleanHeaders = { ...headers };
 
 // Chỉ xóa những header thật sự không cần

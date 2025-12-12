@@ -35,7 +35,7 @@ export class AppController {
     return { success: true };
   }
 
-  // ✅ ENDPOINT ĐÁNH DẤU HOÀN THÀNH
+  //  ENDPOINT ĐÁNH DẤU HOÀN THÀNH
   @Patch(':id/complete')
   async markAsCompleted(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.userId || 1;
@@ -43,7 +43,7 @@ export class AppController {
     return { data: updated };
   }
 
-  // ✅ ENDPOINT BỎ ĐÁNH DẤU HOÀN THÀNH
+  //  ENDPOINT BỎ ĐÁNH DẤU HOÀN THÀNH
   @Patch(':id/incomplete')
   async markAsIncomplete(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.userId || 1;

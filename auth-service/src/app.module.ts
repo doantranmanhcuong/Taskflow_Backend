@@ -49,7 +49,7 @@ import { HealthController } from './health.controller';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_EXPIRE') || '24h',  // Tăng 24h từ env
+          expiresIn: configService.get('JWT_EXPIRE') || '24h',  
         },
       }),
       inject: [ConfigService],

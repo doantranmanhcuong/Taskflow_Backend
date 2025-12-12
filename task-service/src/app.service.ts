@@ -93,11 +93,6 @@ export class AppService {
     task.date = new Date(dto.date);
   }
 
-  // ❌ XÓA DÒNG NÀY VÌ completedAt KHÔNG CÓ TRONG DTO
-  // if (dto.completedAt !== undefined) {
-  //   task.completedAt = dto.completedAt;
-  // }
-
   const updated = await this.taskRepo.save(task);
   
   console.log('[TASK-SERVICE] updateTask → updated:', updated);
@@ -130,7 +125,7 @@ export class AppService {
     return { message: 'Task deleted' };
   }
 
-  // ✅ METHOD ĐÁNH DẤU HOÀN THÀNH
+  //  METHOD ĐÁNH DẤU HOÀN THÀNH
   async markAsCompleted(userId: number, id: number) {
     console.log(
       '[TASK-SERVICE] markAsCompleted → userId:',
@@ -160,7 +155,7 @@ export class AppService {
     return updated;
   }
 
-  // ✅ METHOD BỎ ĐÁNH DẤU HOÀN THÀNH
+  //  METHOD BỎ ĐÁNH DẤU HOÀN THÀNH
   async markAsIncomplete(userId: number, id: number) {
     console.log(
       '[TASK-SERVICE] markAsIncomplete → userId:',

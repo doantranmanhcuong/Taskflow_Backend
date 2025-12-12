@@ -48,7 +48,6 @@ export class ProxyController {
       );
     }
 
-    // Skip 'api' nếu là segment đầu
     if (segments[0] === 'api' && segments.length > 1) {
       segments = segments.slice(1);
       console.log(`[Proxy] Skipped 'api' prefix, new segments:`, segments);
@@ -58,9 +57,8 @@ export class ProxyController {
       throw new HttpException('No service prefix found after skipping /api', HttpStatus.BAD_REQUEST);
     }
 
-    const prefix = segments[0];  // e.g., 'users'
+    const prefix = segments[0];  
 
-    // Mapping cho mismatch plural/singular (dựa trên serviceName registered)
     const serviceMap: Record<string, string> = {
       'auth': 'auth-service',
       'user': 'user-service',
