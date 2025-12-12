@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConsulModule } from '../../registry/src/consul.module';
+import { HttpModule } from '@nestjs/axios'; // ← THÊM
 import { JwtModule } from '@nestjs/jwt';
 
 import { AppController } from './app.controller';
@@ -31,6 +32,8 @@ import { HealthController } from './health.controller';
 
     TypeOrmModule.forFeature([User]),
 
+    HttpModule, // ← QUAN TRỌNG: Thêm HttpModule để gọi auth-service
+    
     ConsulModule.register({
       serviceName: 'user-service',
       servicePort: Number(process.env.PORT) || 3002,

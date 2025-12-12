@@ -16,10 +16,10 @@ async function bootstrap() {
     })
   );
 
-  const port = process.env.PORT || 3003;
+ const port = process.env.PORT || 3003;
   await app.listen(port);
-  console.log(`Task Service is running at http://localhost:${port}/api`);
-
+  console.log('Task Service is running at http://localhost:${port}/api/tasks');
+  
   // Start Consul registration after server is listening
   try {
     const consul = app.get(ConsulService, { strict: false });

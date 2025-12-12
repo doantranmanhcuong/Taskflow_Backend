@@ -65,21 +65,25 @@ export class ProxyService {
       } else if (originalPath.startsWith('/api')) {
         cleanPath = '/';
       }
-      const adjustedPath = `/api${cleanPath}`;
-      const url = `${serviceUrl}${adjustedPath}`;
+      const adjustedPath = cleanPath;
+      const url = `${serviceUrl}/api${adjustedPath}`;
 
       this.logger.log(`Forwarding ${method} ${originalPath} to: ${url} (query: ${JSON.stringify(queryParams || {})})`);
 
-      const cleanHeaders = { ...headers };
-      delete cleanHeaders['if-modified-since'];
-      delete cleanHeaders['if-none-match'];
-      delete cleanHeaders['cache-control'];
+      // THAY TOÀN BỘ ĐOẠN cleanHeaders BẰNG ĐOẠN NÀY:
+const cleanHeaders = { ...headers };
 
-      if (cleanHeaders.authorization) {
-        console.log(`[Proxy] Forwarding Authorization header: ${cleanHeaders.authorization.substring(0, 50)}...`);
-      } else {
-        console.log('[Proxy] No Authorization header in forward - missing from client?');
-      }
+// Chỉ xóa những header thật sự không cần
+delete cleanHeaders['host'];
+delete cleanHeaders['content-length'];
+delete cleanHeaders['if-modified-since'];
+delete cleanHeaders['if-none-match'];
+delete cleanHeaders['cache-control'];
+
+// ĐẢM BẢO AUTHORIZATION KHÔNG BAO GIỜ BỊ XÓA
+if (headers.authorization || headers.Authorization) {
+  cleanHeaders['Authorization'] = headers.authorization || headers.Authorization;
+}
 
       const requestConfig: AxiosRequestConfig = {
         method: method.toLowerCase() as any,
