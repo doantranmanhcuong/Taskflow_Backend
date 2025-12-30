@@ -92,6 +92,10 @@ export class AppService {
     // Chuyển string date thành Date object
     task.date = new Date(dto.date);
   }
+  if (dto.time !== undefined) {
+    // Cập nhật giờ (time) nếu có trong dto
+    task.time = dto.time;
+  }
 
   const updated = await this.taskRepo.save(task);
   

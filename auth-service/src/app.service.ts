@@ -2,19 +2,14 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
 
 import { User } from '../entities/user.entity';
 import { RegisterDto } from '../dto/register.dto';
@@ -28,7 +23,6 @@ export class AppService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
 
-    private readonly http: HttpService,
     private readonly jwt: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -42,7 +36,7 @@ export class AppService {
     if (exist) throw new ConflictException('Email already exists');
 
     // Hash password
-    const hash = await bcrypt.hash(dto.password, 10);
+    const hash = await require('bcrypt').hash(dto.password, 10);  // Keep bcrypt for register/login
 
     // Create user in auth database
     const newUser = this.userRepo.create({
@@ -55,19 +49,18 @@ export class AppService {
 
     console.log('[AUTH] User created with id:', savedUser.id);
 
-    // Sync sang user-service với PASSWORD
+    // Sync sang user-service (no password)
     try {
       const syncUrl = `${this.configService.get('USER_SERVICE') || process.env.USER_SERVICE}/users/sync`;
 
       console.log('[AUTH] SYNC URL:', syncUrl);
 
-      // THÊM PASSWORD vào sync data
-      await firstValueFrom(
-        this.http.post(syncUrl, {
+      await require('@nestjs/axios').firstValueFrom(  // Keep for sync
+        require('@nestjs/axios').HttpService.post(syncUrl, {
           id: savedUser.id,
           email: savedUser.email,
           name: savedUser.name,
-          password: savedUser.password, // ← THÊM PASSWORD
+          // No password in sync
         })
       );
 
@@ -91,7 +84,7 @@ export class AppService {
     if (!user) throw new UnauthorizedException('Invalid email or password');
 
     // Check password
-    const isMatch = await bcrypt.compare(dto.password, user.password);
+    const isMatch = await require('bcrypt').compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
     // Sinh JWT
@@ -115,76 +108,4 @@ export class AppService {
       access_token: token,
     };
   }
-
-  // ========== THÊM 2 METHODS MỚI ==========
-
-  async verifyPassword(userId: number, password: string): Promise<boolean> {
-    this.logger.log(`[AUTH] Verifying password for user ${userId}`);
-    
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    
-    if (!user) {
-      this.logger.warn(`[AUTH] User ${userId} not found for password verification`);
-      return false;
-    }
-    
-    if (!user.password) {
-      this.logger.warn(`[AUTH] User ${userId} has no password set`);
-      return false;
-    }
-    
-    const isValid = await bcrypt.compare(password, user.password);
-    this.logger.log(`[AUTH] Password verification for user ${userId}: ${isValid}`);
-    
-    return isValid;
-  }
-
-  async changePassword(
-  userId: number,
-  newPassword: string,    
-  currentPassword?: string 
-): Promise<void> {
-  this.logger.log(`[AUTH] Changing password for user ${userId}`);
-  
-  const user = await this.userRepo.findOne({ where: { id: userId } });
-  
-  if (!user) {
-    throw new BadRequestException('User not found');
-  }
-  
-  // VALIDATE NEW PASSWORD
-  if (newPassword.length < 6) {
-    throw new BadRequestException('Mật khẩu mới phải có ít nhất 6 ký tự');
-  }
-  
-  if (!/(?=.*[A-Za-z])(?=.*\d)/.test(newPassword)) {
-    throw new BadRequestException('Mật khẩu phải chứa ít nhất 1 chữ cái và 1 số');
-  }
-  
-  // Nếu có currentPassword, verify nó
-  if (currentPassword && currentPassword.trim() !== '') {
-    if (!user.password) {
-      throw new BadRequestException('Tài khoản chưa có mật khẩu');
-    }
-    
-    const isCurrentValid = await bcrypt.compare(currentPassword, user.password);
-    
-    if (!isCurrentValid) {
-      throw new UnauthorizedException('Mật khẩu hiện tại không đúng');
-    }
-    this.logger.log(`[AUTH] Current password verified for user ${userId}`);
-  }
-  // Nếu không có currentPassword (trường hợp đặt password lần đầu)
-  else {
-    this.logger.log(`[AUTH] Setting first password for user ${userId}`);
-  }
-  
-  // Hash và lưu password mới
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(newPassword, salt);
-  
-  await this.userRepo.save(user);
-  
-  this.logger.log(`[AUTH] Password changed for user ${userId}`);
 }
-  }

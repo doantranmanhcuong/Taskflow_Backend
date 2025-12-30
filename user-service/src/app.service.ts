@@ -1,23 +1,15 @@
-// src/app.service.ts
 import { 
   Injectable, 
   NotFoundException, 
   ConflictException, 
   InternalServerErrorException, 
-  Logger, 
-  BadRequestException,
-  Inject, 
-  Req,
-  UnauthorizedException
+  Logger 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { HttpService } from '@nestjs/axios'; // ← THÊM
-import { firstValueFrom } from 'rxjs'; // ← THÊM
 import { User } from '../entities/user.entity';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { ProfileResponseDto } from '../dto/profile-response.dto';
-
 
 @Injectable()
 export class AppService {
@@ -25,8 +17,6 @@ export class AppService {
 
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    private readonly httpService: HttpService,
-     // ← THÊM HttpService
   ) {}
 
   async syncUser(dto: any) {
@@ -83,56 +73,30 @@ export class AppService {
     }
   }
 
- async updateProfile(
-  id: number, 
-  dto: UpdateProfileDto,
-  authHeader?: string
-): Promise<ProfileResponseDto> {
-  try {
-    this.logger.log(`[USER] Updating profile for id: ${id}`);
+  async updateProfile(
+    id: number, 
+    dto: UpdateProfileDto
+  ): Promise<ProfileResponseDto> {
+    try {
+      this.logger.log(`[USER] Updating profile for id: ${id}`);
 
-    const user = await this.userRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
+      const user = await this.userRepo.findOne({ where: { id } });
+      if (!user) throw new NotFoundException('User not found');
 
-    const { currentPassword, newPassword } = dto;
+      // Cập nhật thông tin khác...
+      if (dto.name) user.name = dto.name.trim();
+      if (dto.email) user.email = dto.email.trim();
+      if (dto.phone !== undefined) user.phone = dto.phone;
+      if (dto.avatar !== undefined) user.avatar = dto.avatar;
 
-    if (newPassword && newPassword.trim() !== '') {
-      if (!authHeader) {
-        throw new UnauthorizedException('Token missing');
-      }
+      const updated = await this.userRepo.save(user);
+      this.logger.log(`[USER] Profile updated successfully for id: ${id}`);
 
-      try {
-        await firstValueFrom(
-          this.httpService.put(
-            'http://localhost:3001/auth/change-password',
-            { currentPassword, newPassword },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'authorization': authHeader // ← VIẾT THƯỜNG + TOKEN CÓ THẬT!
-              }
-            } as any
-          )
-        );
-      } catch (error: any) {
-        throw new BadRequestException('Mật khẩu hiện tại không đúng');
-      }
+      return new ProfileResponseDto(updated);
+
+    } catch (error: any) {
+      this.logger.error(`[USER] Update profile error for id ${id}:`, error.message);
+      throw error;
     }
-
-    // Cập nhật thông tin khác...
-    if (dto.name) user.name = dto.name;
-    if (dto.email) user.email = dto.email;
-    if (dto.phone !== undefined) user.phone = dto.phone;
-    if (dto.avatar !== undefined) user.avatar = dto.avatar;
-
-    const updated = await this.userRepo.save(user);
-    return new ProfileResponseDto(updated);
-
-  } catch (error) {
-    throw error;
   }
 }
-      
-}
-      
-      

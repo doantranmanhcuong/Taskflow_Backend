@@ -1,4 +1,3 @@
-// src/app.controller.ts
 import { Body, Controller, Get, Post, Put, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
 import { AppService } from './app.service';
@@ -36,18 +35,17 @@ export class AppController {
     return await this.appService.getUserById(userId);
   }
 
-@Put('profile')
-@UseGuards(JwtAuthGuard)
-async updateProfile(
-  @Req() req: any,
-  @Body() dto: UpdateProfileDto
-): Promise<ProfileResponseDto> {
-  const userId = (req.user as any)?.userId;
-  if (!userId) throw new UnauthorizedException('Invalid token');
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Req() req: any,
+    @Body() dto: UpdateProfileDto  // DTO already trimmed by ValidationPipe
+  ): Promise<ProfileResponseDto> {
+    const userId = (req.user as any)?.userId;
+    if (!userId) throw new UnauthorizedException('Invalid token');
 
-  // LẤY TOKEN CHẮC CHẮN 100% – DÒNG DUY NHẤT CẦN THÊM!
-  const authHeader = req.headers.authorization || req.headers.Authorization;
+    console.log('[USER-CONTROLLER] Update profile request for id:', userId, 'dto:', dto);  // Log dto to debug
 
-  return this.appService.updateProfile(userId, dto, authHeader);
-}
+    return this.appService.updateProfile(userId, dto);
+  }
 }
