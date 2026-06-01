@@ -17,6 +17,16 @@ export class AppController {
     return { data: tasks };
   }
 
+  // ✅ BỔ SUNG: ENDPOINT LẤY CHI TIẾT 1 TASK
+  @Get(':id')
+  async getTaskById(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user?.userId;  
+    if (!userId) throw new UnauthorizedException('Invalid token - missing user ID');
+    
+    const task = await this.appService.getTaskById(userId, Number(id));
+    return { data: task };
+  }
+
   @Post()
   async createTask(@Req() req: any, @Body() dto: CreateTaskDto) {
     const userId = req.user?.userId;  
@@ -41,7 +51,7 @@ export class AppController {
     return { success: true };
   }
 
-  //  ENDPOINT ĐÁNH DẤU HOÀN THÀNH
+  // ENDPOINT ĐÁNH DẤU HOÀN THÀNH
   @Patch(':id/complete')
   async markAsCompleted(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.userId;  
@@ -50,7 +60,7 @@ export class AppController {
     return { data: updated };
   }
 
-  //  ENDPOINT BỎ ĐÁNH DẤU HOÀN THÀNH
+  // ENDPOINT BỎ ĐÁNH DẤU HOÀN THÀNH
   @Patch(':id/incomplete')
   async markAsIncomplete(@Req() req: any, @Param('id') id: string) {
     const userId = req.user?.userId;  

@@ -14,24 +14,24 @@ export class AppService {
     private readonly taskRepo: Repository<Task>,
   ) {}
 
- async createTask(userId: number, dto: CreateTaskDto) {
-  console.log('[TASK-SERVICE] createTask → userId:', userId, 'dto:', dto);
+  async createTask(userId: number, dto: CreateTaskDto) {
+    console.log('[TASK-SERVICE] createTask → userId:', userId, 'dto:', dto);
 
-  // XÓA completedAt khỏi DTO nếu có
-  const { completedAt, ...taskData } = dto as any;
-  
-  const task = this.taskRepo.create({
-    ...taskData,
-    userId,
-    status: dto.status || TaskStatus.PENDING,
-    // KHÔNG thêm completedAt ở đây
-    date: dto.date ? new Date(dto.date) : new Date(),
-  });
+    // XÓA completedAt khỏi DTO nếu có
+    const { completedAt, ...taskData } = dto as any;
+    
+    const task = this.taskRepo.create({
+      ...taskData,
+      userId,
+      status: dto.status || TaskStatus.PENDING,
+      // KHÔNG thêm completedAt ở đây
+      date: dto.date ? new Date(dto.date) : new Date(),
+    });
 
-  const saved = await this.taskRepo.save(task);
-  console.log('[TASK-SERVICE] created:', saved);
-  return saved;
-}
+    const saved = await this.taskRepo.save(task);
+    console.log('[TASK-SERVICE] created:', saved);
+    return saved;
+  }
 
   async getTasks(userId: number) {
     console.log('[TASK-SERVICE] getTasks → userId:', userId);
@@ -47,61 +47,75 @@ export class AppService {
     return tasks;
   }
 
+  // ✅ BỔ SUNG: METHOD LẤY CHI TIẾT 1 TASK THEO ID
+  async getTaskById(userId: number, id: number) {
+    console.log('[TASK-SERVICE] getTaskById → userId:', userId, 'taskId:', id);
+
+    const task = await this.taskRepo.findOne({ where: { id, userId } });
+
+    if (!task) {
+      console.log('[TASK-SERVICE] getTaskById → NOT FOUND');
+      throw new NotFoundException('Task not found');
+    }
+
+    return task;
+  }
+
   async updateTask(userId: number, id: number, dto: UpdateTaskDto) {
-  console.log(
-    '[TASK-SERVICE] updateTask → userId:',
-    userId,
-    'taskId:',
-    id,
-    'dto:',
-    dto,
-  );
-
-  const task = await this.taskRepo.findOne({ where: { id, userId } });
-
-  if (!task) {
     console.log(
-      '[TASK-SERVICE] updateTask → NOT FOUND for userId:',
+      '[TASK-SERVICE] updateTask → userId:',
       userId,
       'taskId:',
       id,
+      'dto:',
+      dto,
     );
-    throw new NotFoundException('Task not found');
-  }
 
-  // Xử lý logic completedAt dựa trên status
-  if (dto.status !== undefined) {
-    if (dto.status === TaskStatus.COMPLETED && task.status !== TaskStatus.COMPLETED) {
-      // Nếu chuyển sang COMPLETED, thêm completedAt
-      task.completedAt = new Date(); // TRỰC TIẾP GÁN VÀO TASK, KHÔNG QUA DTO
-    } else if (dto.status !== TaskStatus.COMPLETED && task.status === TaskStatus.COMPLETED) {
-      // Nếu chuyển từ COMPLETED sang trạng thái khác, xóa completedAt
-      task.completedAt = null; // TRỰC TIẾP GÁN VÀO TASK
+    const task = await this.taskRepo.findOne({ where: { id, userId } });
+
+    if (!task) {
+      console.log(
+        '[TASK-SERVICE] updateTask → NOT FOUND for userId:',
+        userId,
+        'taskId:',
+        id,
+      );
+      throw new NotFoundException('Task not found');
     }
-    task.status = dto.status;
-  }
 
-  // Cập nhật các field khác nếu có
-  if (dto.title !== undefined) {
-    task.title = dto.title;
-  }
-  if (dto.description !== undefined) {
-    task.description = dto.description;
-  }
-  if (dto.date !== undefined) {
-    // Chuyển string date thành Date object
-    task.date = new Date(dto.date);
-  }
-  if (dto.time !== undefined) {
-    // Cập nhật giờ (time) nếu có trong dto
-    task.time = dto.time;
-  }
+    // Xử lý logic completedAt dựa trên status
+    if (dto.status !== undefined) {
+      if (dto.status === TaskStatus.COMPLETED && task.status !== TaskStatus.COMPLETED) {
+        // Nếu chuyển sang COMPLETED, thêm completedAt
+        task.completedAt = new Date(); 
+      } else if (dto.status !== TaskStatus.COMPLETED && task.status === TaskStatus.COMPLETED) {
+        // Nếu chuyển từ COMPLETED sang trạng thái khác, xóa completedAt
+        task.completedAt = null; 
+      }
+      task.status = dto.status;
+    }
 
-  const updated = await this.taskRepo.save(task);
-  
-  console.log('[TASK-SERVICE] updateTask → updated:', updated);
-  return updated;
-}
+    // Cập nhật các field khác nếu có
+    if (dto.title !== undefined) {
+      task.title = dto.title;
+    }
+    if (dto.description !== undefined) {
+      task.description = dto.description;
+    }
+    if (dto.date !== undefined) {
+      // Chuyển string date thành Date object
+      task.date = new Date(dto.date);
+    }
+    if (dto.time !== undefined) {
+      // Cập nhật giờ (time) nếu có trong dto
+      task.time = dto.time;
+    }
+
+    const updated = await this.taskRepo.save(task);
+    
+    console.log('[TASK-SERVICE] updateTask → updated:', updated);
+    return updated;
+  }
 
   async deleteTask(userId: number, id: number) {
     console.log(
@@ -129,7 +143,7 @@ export class AppService {
     return { message: 'Task deleted' };
   }
 
-  //  METHOD ĐÁNH DẤU HOÀN THÀNH
+  // METHOD ĐÁNH DẤU HOÀN THÀNH
   async markAsCompleted(userId: number, id: number) {
     console.log(
       '[TASK-SERVICE] markAsCompleted → userId:',
@@ -159,7 +173,7 @@ export class AppService {
     return updated;
   }
 
-  //  METHOD BỎ ĐÁNH DẤU HOÀN THÀNH
+  // METHOD BỎ ĐÁNH DẤU HOÀN THÀNH
   async markAsIncomplete(userId: number, id: number) {
     console.log(
       '[TASK-SERVICE] markAsIncomplete → userId:',
