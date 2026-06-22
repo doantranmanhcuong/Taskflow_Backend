@@ -4,33 +4,39 @@ import { TaskStatus } from './enums/task-status.enum';
 @Entity()
 export class Task {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number; 
 
   @Column()
-  userId: number;
+  userId!: number; 
 
   @Column()
-  title: string;
+  title!: string; 
 
   @Column({ nullable: true })
-  description: string;
+  description!: string; 
 
-  @Column({ type: 'date', nullable: true }) // CHỈ CẦN DÒNG NÀY
-  date: Date | null; // CHO PHÉP NULL
+  @Column({ type: 'date', nullable: true }) 
+  date!: Date | null; 
 
-  @Column({ type: 'time', nullable: true }) // THÊM: lưu giờ dạng HH:mm:ss
-  time: string;
+  @Column({ type: 'time', nullable: true }) 
+  time!: string; 
 
   @Column({
     type: 'enum',
     enum: TaskStatus,
     default: TaskStatus.PENDING
   })
-  status: TaskStatus;
+  status!: TaskStatus; 
+
+  @Column({ type: 'varchar', length: 20, default: '#3b82f6' })
+  color!: string; 
+
+  @Column({ type: 'boolean', default: false })
+  isPinned!: boolean; 
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  createdAt!: Date; 
 
   @Column({ type: 'datetime', nullable: true })
-  completedAt: Date | null;
+  completedAt!: Date | null; 
 }
